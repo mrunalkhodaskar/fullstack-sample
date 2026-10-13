@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   createOrder,
   bulkDeleteOrders,
@@ -13,6 +14,7 @@ import {
   updateOrderStatus
 } from './api';
 import { clearCachedOrders, getCachedOrders, saveCachedOrders } from './offlineStore';
+import { InventoryPage, ProductsPage } from './ProductManagement';
 import './App.css';
 
 const emptyOrder = { productName: '', quantity: 1, price: '', notes: '' };
@@ -154,6 +156,8 @@ function AuthScreen({ mode, setMode, credentials, setCredentials, submitting, er
 }
 
 function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [mode, setMode] = useState('login');
@@ -582,6 +586,7 @@ function App() {
     setSelectedOrderIds([]);
     cancelEditing();
     setError(logoutWarning);
+    navigate('/');
   }
 
   if (!authenticated) {
@@ -606,6 +611,11 @@ function App() {
       <header className="topbar">
         <div className="topbar__inner">
           <Brand />
+          <nav className="primary-nav" aria-label="Main navigation">
+            <NavLink to="/" end>Orders</NavLink>
+            <NavLink to="/products">Products</NavLink>
+            <NavLink to="/inventory">Inventory</NavLink>
+          </nav>
           <div className="topbar__right">
             <span className={`connection-pill${isOnline ? '' : ' connection-pill--offline'}`}>
               <span className="connection-pill__dot" />{isOnline ? 'Online' : 'Offline'}
@@ -620,6 +630,11 @@ function App() {
         </div>
       </header>
 
+      {location.pathname === '/products' ? (
+        <ProductsPage isOnline={isOnline} />
+      ) : location.pathname === '/inventory' ? (
+        <InventoryPage isOnline={isOnline} />
+      ) : location.pathname === '/' ? (
       <main className="dashboard">
         <div className="welcome-row">
           <div>
@@ -960,6 +975,7 @@ function App() {
         </div>
         <footer className="dashboard-footer"><Brand /><span>Made for a smoother workday.</span></footer>
       </main>
+      ) : <Navigate to="/" replace />}
     </div>
   );
 }

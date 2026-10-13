@@ -467,6 +467,30 @@ input:focus-visible {
   margin: 0 auto;
 }
 
+.primary-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: auto;
+  margin-left: 24px;
+}
+
+.primary-nav a {
+  border-radius: 9px;
+  padding: 8px 11px;
+  color: #717b8d;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.primary-nav a:hover,
+.primary-nav a.active {
+  color: var(--blue);
+  background: #f0f1ff;
+}
+
 .topbar__right {
   display: flex;
   align-items: center;
@@ -1550,6 +1574,16 @@ input:focus-visible {
     gap: 8px;
   }
 
+  .primary-nav {
+    gap: 0;
+    margin-left: 8px;
+  }
+
+  .primary-nav a {
+    padding: 7px 8px;
+    font-size: 10px;
+  }
+
   .account-pill,
   .topbar__divider,
   .topbar .button--quiet span {
@@ -1560,6 +1594,10 @@ input:focus-visible {
     width: 35px;
     min-height: 35px;
     padding: 0;
+  }
+
+  .topbar .connection-pill {
+    display: none;
   }
 
   .dashboard {
@@ -1681,6 +1719,22 @@ input:focus-visible {
 
   .dashboard-footer {
     padding-top: 17px;
+  }
+}
+
+@media (max-width: 420px) {
+  .primary-nav {
+    margin-left: 3px;
+  }
+
+  .primary-nav a {
+    padding: 6px 5px;
+    font-size: 9px;
+  }
+
+  .topbar__inner > .brand {
+    gap: 5px;
+    font-size: 17px;
   }
 }
 

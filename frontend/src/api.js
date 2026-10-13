@@ -1,14 +1,16 @@
 const API_URL = 'http://localhost:8080/api/orders';
+const PRODUCTS_URL = 'http://localhost:8080/api/products';
 const AUTH_URL = 'http://localhost:8080/api/auth';
 
-let accessToken = null;
+const accessTokenKey = Symbol.for('orderly.accessToken');
 
 export function setAccessToken(token) {
-  accessToken = token;
+  globalThis[accessTokenKey] = token;
 }
 
 async function request(url, options = {}) {
   const headers = new Headers(options.headers);
+  const accessToken = globalThis[accessTokenKey];
   if (accessToken) {
     headers.set('Authorization', `Bearer ${accessToken}`);
   }
@@ -95,4 +97,36 @@ export function bulkDeleteOrders(ids) {
     method: 'DELETE',
     body: JSON.stringify({ ids })
   });
+}
+
+export function fetchProducts(search = '') {
+  const params = new URLSearchParams();
+  if (search.trim()) params.set('search', search.trim());
+  const query = params.toString();
+  return request(`${PRODUCTS_URL}${query ? `?${query}` : ''}`);
+}
+
+export function createProduct(product) {
+  return request(PRODUCTS_URL, {
+    method: 'POST',
+    body: JSON.stringify(product)
+  });
+}
+
+export function updateProduct(id, product) {
+  return request(`${PRODUCTS_URL}/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(product)
+  });
+}
+
+export function updateProductStock(id, stockQuantity) {
+  return request(`${PRODUCTS_URL}/${id}/stock`, {
+    method: 'PATCH',
+    body: JSON.stringify({ stockQuantity })
+  });
+}
+
+export function deleteProduct(id) {
+  return request(`${PRODUCTS_URL}/${id}`, { method: 'DELETE' });
 }

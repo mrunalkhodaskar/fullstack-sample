@@ -15,6 +15,14 @@
 - The dashboard can search by product, order ID, or status; filter by status; sort by order ID, product, or order value; paginate server-side; select orders for bulk actions; and export all matching results to CSV.
 - The report dashboard lets users select a date range and shows order, unit, revenue, and status totals for that period.
 
+## Products and inventory
+
+- Signed-in users can navigate between the order workspace, product catalog, and inventory at `/`, `/products`, and `/inventory`.
+- Product catalog operations use `GET /api/products?search=keyboard`, `POST /api/products`, `PUT /api/products/{id}`, and `DELETE /api/products/{id}`. Product SKUs are unique within an account and are normalized to uppercase.
+- Products track a unit price, stock quantity, and low-stock threshold. The inventory view highlights products at or below their threshold and allows stock quantities to be updated with `PATCH /api/products/{id}/stock`.
+- Product and inventory API requests are authenticated and scoped to the signed-in account. Negative prices or quantities are rejected, and another account's products are returned as not found.
+- To seed 1,000 deterministic sample products for a dedicated test account, stop the normal backend, set `SEED_PRODUCTS_EMAIL` and `SEED_PRODUCTS_PASSWORD` in the environment, then run `SEED_PRODUCTS_ENABLED=true SPRING_MAIN_WEB_APPLICATION_TYPE=none mvn spring-boot:run` from `backend`. In PowerShell, set those three values with `$env:SEED_PRODUCTS_EMAIL`, `$env:SEED_PRODUCTS_PASSWORD`, and `$env:SEED_PRODUCTS_ENABLED`, then run `$env:SPRING_MAIN_WEB_APPLICATION_TYPE = 'none'; mvn spring-boot:run`. The test account is created if needed; an existing account's password is not changed. Seeding is disabled by default and repeat runs only add missing `TEST-DATA-0001` through `TEST-DATA-1000` products.
+
 ## Offline support
 
 - The production build precaches the frontend app shell with a service worker. Service workers require HTTPS in production; localhost is supported for local testing.
@@ -30,7 +38,7 @@
 - Passwords are stored as BCrypt hashes.
 - The backend returns a short-lived JWT (15 minutes by default).
 - React keeps the access token in memory and sends it as a Bearer token for protected order requests. Reloading the page signs the user out.
-- All `/api/orders` endpoints require a valid token. The authentication endpoints are public.
+- All `/api/orders` and `/api/products` endpoints require a valid token. The authentication endpoints are public.
 
 ## Run locally
 
