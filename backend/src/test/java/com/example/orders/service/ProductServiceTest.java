@@ -8,12 +8,19 @@ import com.example.orders.repository.ProductRepository;
 import com.example.orders.repository.UserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,6 +88,44 @@ class ProductServiceTest {
 
         assertEquals(404, exception.getStatusCode().value());
         verify(productRepository, never()).save(any(Product.class));
+    }
+
+    @Test
+    void listsOnlyOneRequestedPageWithStableDatabaseSort() {
+        Product product = new Product();
+        product.setName("Keyboard");
+        product.setSku("KEYBOARD-01");
+        product.setUnitPrice(new BigDecimal("25.00"));
+        product.setStockQuantity(8);
+        product.setLowStockThreshold(2);
+        when(productRepository.findAll(
+                ArgumentMatchers.<Specification<Product>>any(),
+                any(Pageable.class)
+        )).thenReturn(new PageImpl<>(List.of(product)));
+
+        var result = productService.getProducts("owner@example.com", 2, 25, "name-asc", "", false);
+
+        assertEquals(1, result.getContent().size());
+        ArgumentCaptor<Pageable> pageable = ArgumentCaptor.forClass(Pageable.class);
+        verify(productRepository).findAll(ArgumentMatchers.<Specification<Product>>any(), pageable.capture());
+        assertEquals(2, pageable.getValue().getPageNumber());
+        assertEquals(25, pageable.getValue().getPageSize());
+        assertEquals(Sort.Direction.ASC, pageable.getValue().getSort().getOrderFor("name").getDirection());
+        assertEquals(Sort.Direction.ASC, pageable.getValue().getSort().getOrderFor("id").getDirection());
+    }
+
+    @Test
+    void rejectsInvalidProductPageSize() {
+        ResponseStatusException exception = assertThrows(
+                ResponseStatusException.class,
+                () -> productService.getProducts("owner@example.com", 0, 101, "name-asc", "", false)
+        );
+
+        assertEquals(400, exception.getStatusCode().value());
+        verify(productRepository, never()).findAll(
+                ArgumentMatchers.<Specification<Product>>any(),
+                any(Pageable.class)
+        );
     }
 
     private ProductRequest productRequest(String name, String sku, int stock, int threshold) {

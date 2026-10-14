@@ -11,7 +11,11 @@ import java.time.Instant;
         uniqueConstraints = @UniqueConstraint(
                 name = "uk_products_owner_sku",
                 columnNames = {"user_account_id", "sku"}
-        )
+        ),
+        indexes = {
+                @Index(name = "idx_products_owner_name", columnList = "user_account_id, name"),
+                @Index(name = "idx_products_owner_stock", columnList = "user_account_id, stock_quantity")
+        }
 )
 public class Product {
     @Id

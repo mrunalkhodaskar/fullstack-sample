@@ -205,6 +205,20 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const handleUnauthorized = () => {
+      setAuthenticated(false);
+      setAccountEmail('');
+      setAccessToken(null);
+      setOrders([]);
+      setReport(null);
+      setError('Your session has expired. Please sign in again.');
+      navigate('/');
+    };
+    window.addEventListener('orderly:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('orderly:unauthorized', handleUnauthorized);
+  }, [navigate]);
+
+  useEffect(() => {
     if (!authenticated) return undefined;
 
     let cancelled = false;

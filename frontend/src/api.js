@@ -3,6 +3,7 @@ const PRODUCTS_URL = 'http://localhost:8080/api/products';
 const AUTH_URL = 'http://localhost:8080/api/auth';
 
 const accessTokenKey = Symbol.for('orderly.accessToken');
+const unauthorizedEvent = 'orderly:unauthorized';
 
 export function setAccessToken(token) {
   globalThis[accessTokenKey] = token;
@@ -21,6 +22,10 @@ async function request(url, options = {}) {
   try {
     const response = await fetch(url, { ...options, headers });
     if (!response.ok) {
+      if (response.status === 401 && !url.startsWith(AUTH_URL)) {
+        setAccessToken(null);
+        window.dispatchEvent(new Event(unauthorizedEvent));
+      }
       const message = await response.text();
       throw new Error(message || `Request failed (${response.status})`);
     }
@@ -99,11 +104,26 @@ export function bulkDeleteOrders(ids) {
   });
 }
 
-export function fetchProducts(search = '') {
-  const params = new URLSearchParams();
+export function fetchProducts({
+  page = 0,
+  size = 25,
+  sort = 'name-asc',
+  search = '',
+  lowStockOnly = false
+} = {}) {
+  const params = new URLSearchParams({ page, size, sort });
   if (search.trim()) params.set('search', search.trim());
-  const query = params.toString();
-  return request(`${PRODUCTS_URL}${query ? `?${query}` : ''}`);
+  if (lowStockOnly) params.set('lowStockOnly', 'true');
+  return request(`${PRODUCTS_URL}?${params}`).then((result) => {
+    if (!result || !Array.isArray(result.content)) {
+      throw new Error('The product API returned an unexpected response. Restart the backend with the latest version.');
+    }
+    return result;
+  });
+}
+
+export function fetchProductSummary() {
+  return request(`${PRODUCTS_URL}/summary`);
 }
 
 export function createProduct(product) {

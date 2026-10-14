@@ -18,8 +18,9 @@
 ## Products and inventory
 
 - Signed-in users can navigate between the order workspace, product catalog, and inventory at `/`, `/products`, and `/inventory`.
-- Product catalog operations use `GET /api/products?search=keyboard`, `POST /api/products`, `PUT /api/products/{id}`, and `DELETE /api/products/{id}`. Product SKUs are unique within an account and are normalized to uppercase.
+- Product catalog operations use `GET /api/products?page=0&size=25&sort=name-asc&search=keyboard&lowStockOnly=false`, `POST /api/products`, `PUT /api/products/{id}`, and `DELETE /api/products/{id}`. Product listing is owner-scoped and database-paginated (page sizes 1–100); search, stock filtering, and sorting are applied by the backend. Product SKUs are unique within an account and are normalized to uppercase.
 - Products track a unit price, stock quantity, and low-stock threshold. The inventory view highlights products at or below their threshold and allows stock quantities to be updated with `PATCH /api/products/{id}/stock`.
+- `GET /api/products/summary` returns owner-scoped product count, stock units, low-stock count, and total stock value without transferring the full catalog.
 - Product and inventory API requests are authenticated and scoped to the signed-in account. Negative prices or quantities are rejected, and another account's products are returned as not found.
 - To seed 1,000 deterministic sample products for a dedicated test account, stop the normal backend, set `SEED_PRODUCTS_EMAIL` and `SEED_PRODUCTS_PASSWORD` in the environment, then run `SEED_PRODUCTS_ENABLED=true SPRING_MAIN_WEB_APPLICATION_TYPE=none mvn spring-boot:run` from `backend`. In PowerShell, set those three values with `$env:SEED_PRODUCTS_EMAIL`, `$env:SEED_PRODUCTS_PASSWORD`, and `$env:SEED_PRODUCTS_ENABLED`, then run `$env:SPRING_MAIN_WEB_APPLICATION_TYPE = 'none'; mvn spring-boot:run`. The test account is created if needed; an existing account's password is not changed. Seeding is disabled by default and repeat runs only add missing `TEST-DATA-0001` through `TEST-DATA-1000` products.
 

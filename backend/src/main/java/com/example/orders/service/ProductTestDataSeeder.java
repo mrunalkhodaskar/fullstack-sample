@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +62,12 @@ public class ProductTestDataSeeder implements ApplicationRunner {
                 ));
 
         Set<String> existingSkus = new HashSet<>();
-        productRepository.findAllByOwner_EmailAndSkuStartingWith(accountEmail, SKU_PREFIX)
+        productRepository.findAllByOwner_EmailAndSkuStartingWith(
+                        accountEmail,
+                        SKU_PREFIX,
+                        PageRequest.of(0, PRODUCT_COUNT)
+                )
+                .getContent()
                 .forEach(product -> existingSkus.add(product.getSku()));
 
         List<Product> productsToSave = new ArrayList<>(PRODUCT_COUNT);

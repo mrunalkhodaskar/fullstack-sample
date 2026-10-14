@@ -6,6 +6,8 @@ import com.example.orders.repository.ProductRepository;
 import com.example.orders.repository.UserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
@@ -29,8 +31,15 @@ class ProductTestDataSeederTest {
         List<Product> savedProducts = new ArrayList<>();
 
         when(userAccountRepository.findByEmail(testAccount.getEmail())).thenReturn(Optional.of(testAccount));
-        when(productRepository.findAllByOwner_EmailAndSkuStartingWith(testAccount.getEmail(), "TEST-DATA-"))
-                .thenAnswer(invocation -> List.copyOf(savedProducts));
+        when(productRepository.findAllByOwner_EmailAndSkuStartingWith(
+                org.mockito.ArgumentMatchers.eq(testAccount.getEmail()),
+                org.mockito.ArgumentMatchers.eq("TEST-DATA-"),
+                org.mockito.ArgumentMatchers.any(Pageable.class)
+        )).thenAnswer(invocation -> new PageImpl<>(
+                List.copyOf(savedProducts),
+                invocation.getArgument(2),
+                savedProducts.size()
+        ));
         when(productRepository.saveAll(org.mockito.ArgumentMatchers.<Iterable<Product>>notNull()))
                 .thenAnswer(invocation -> {
                     Iterable<Product> products = invocation.getArgument(0);
