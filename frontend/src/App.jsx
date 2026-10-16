@@ -45,6 +45,8 @@ function Icon({ name, size = 20 }) {
     arrow: <><path d="M7 17 17 7M7 7h10v10" /></>,
     check: <><path d="m5 12 4 4L19 6" /></>,
     lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 1 1 8 0v3" /></>,
+    moon: <><path d="M20.9 13A9 9 0 0 1 11 3.1 9 9 0 1 0 20.9 13Z" /></>,
+    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></>,
     sparkle: <><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z" /><path d="m19 14 1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1L19 14Z" /></>
   };
 
@@ -65,6 +67,23 @@ function Icon({ name, size = 20 }) {
   );
 }
 
+function ThemeToggle({ theme, onToggle }) {
+  const nextTheme = theme === 'dark' ? 'light' : 'dark';
+
+  return (
+    <button
+      className="theme-toggle"
+      type="button"
+      onClick={onToggle}
+      aria-label={`Switch to ${nextTheme} theme`}
+      title={`Switch to ${nextTheme} theme`}
+    >
+      <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={17} />
+      <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+    </button>
+  );
+}
+
 function Brand({ light = false }) {
   return (
     <span className={`brand${light ? ' brand--light' : ''}`}>
@@ -74,7 +93,7 @@ function Brand({ light = false }) {
   );
 }
 
-function AuthScreen({ mode, setMode, credentials, setCredentials, submitting, error, onSubmit }) {
+function AuthScreen({ mode, setMode, credentials, setCredentials, submitting, error, onSubmit, theme, onToggleTheme }) {
   const isLogin = mode === 'login';
 
   return (
@@ -98,6 +117,7 @@ function AuthScreen({ mode, setMode, credentials, setCredentials, submitting, er
       </section>
 
       <section className="auth-panel">
+        <ThemeToggle theme={theme} onToggle={onToggleTheme} />
         <div className="auth-card">
           <div className="auth-card__mark"><Icon name="bag" size={23} /></div>
           <span className="eyebrow">{isLogin ? 'WELCOME BACK' : 'GET STARTED'}</span>
@@ -159,6 +179,9 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
+  const [theme, setTheme] = useState(() => (
+    window.localStorage.getItem('orderly-theme') === 'dark' ? 'dark' : 'light'
+  ));
   const [isOnline, setIsOnline] = useState(() => navigator.onLine);
   const [mode, setMode] = useState('login');
   const [credentials, setCredentials] = useState({ email: '', password: '' });
@@ -189,6 +212,11 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    window.localStorage.setItem('orderly-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const updateConnection = () => {
@@ -616,6 +644,8 @@ function App() {
         submitting={submitting}
         error={error}
         onSubmit={handleAuthSubmit}
+        theme={theme}
+        onToggleTheme={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')}
       />
     );
   }
@@ -631,6 +661,7 @@ function App() {
             <NavLink to="/inventory">Inventory</NavLink>
           </nav>
           <div className="topbar__right">
+            <ThemeToggle theme={theme} onToggle={() => setTheme((current) => current === 'dark' ? 'light' : 'dark')} />
             <span className={`connection-pill${isOnline ? '' : ' connection-pill--offline'}`}>
               <span className="connection-pill__dot" />{isOnline ? 'Online' : 'Offline'}
             </span>

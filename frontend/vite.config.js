@@ -8,12 +8,12 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
-      manifest: {
+    manifest: {
         name: 'Orderly — Order Management',
         short_name: 'Orderly',
         description: 'A clearer way to manage your orders.',
-        theme_color: '#f6f7fb',
-        background_color: '#f6f7fb',
+        theme_color: '#3a50a5',
+        background_color: '#5f7bec',
         display: 'standalone',
         start_url: '/'
       },
